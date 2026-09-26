@@ -1,0 +1,24 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+publish/
+
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userprefs
+*.rsuser
+
+# NuGet
+packages/
+*.nupkg
+
+# JetBrains Rider
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db

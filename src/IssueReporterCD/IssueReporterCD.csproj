@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net481</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <LangVersion>7.3</LangVersion>
+    <RootNamespace>IssueReporterCD</RootNamespace>
+    <AssemblyName>IssueReporterCD</AssemblyName>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <Prefer32Bit>false</Prefer32Bit>
+    <Version>0.1.0</Version>
+    <Product>Aurora Issue Reporter</Product>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Lets the project build without the .NET Framework 4.8.1 targeting pack installed (e.g. CI). -->
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualBasic" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.IO.Compression" />
+    <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Windows.Forms" />
+  </ItemGroup>
+
+</Project>

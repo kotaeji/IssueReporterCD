@@ -1,0 +1,24 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build
+        run: msbuild IssueReporterCD.sln /restore /p:Configuration=Release /v:minimal
+
+      - name: Upload build output
+        uses: actions/upload-artifact@v4
+        with:
+          name: IssueReporterCD-${{ github.sha }}
+          path: src/IssueReporterCD/bin/Release/net481/
