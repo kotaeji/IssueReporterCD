@@ -16,6 +16,7 @@ Aurora 장비 PC에서 이슈 설명과 장비 데이터를 zip으로 묶어 주
 - `Collectors/` — `ICollector` 구현. 새 수집 항목은 여기에 추가하고 `App.OnStartup`에 등록한다.
 - `Reporting/` — 세션 임시 폴더, 리포트 텍스트, zip 생성.
 - `Settings/` — `App.config`의 appSettings(`AppSettings`), 사용자 입력 기억(`UserPrefs`).
+- `Assets/app.ico` — 앱 아이콘. 직접 수정하지 말고 `assets/app-icon.svg`(디자인 원본)와 `tools/make_icon.py`를 함께 고친 뒤 스크립트로 다시 만든다.
 - `ViewModels/`, `Infrastructure/` — 외부 라이브러리 없는 간단한 MVVM.
 
 ## 규칙
