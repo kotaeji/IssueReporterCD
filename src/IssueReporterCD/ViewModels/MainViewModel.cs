@@ -17,14 +17,17 @@ namespace IssueReporterCD.ViewModels
     public sealed class MainViewModel : ObservableObject
     {
         private readonly ReportSession _session;
-        private readonly AppSettings _settings;
+        private readonly Func<ReporterSettings, IList<ICollector>> _createCollectors;
+        private readonly IDialogService _dialogs;
         private readonly UserPrefs _prefs;
+        private ReporterSettings _settings;
         private Task _collectionTask;
 
         private string _equipmentId;
         private string _site;
         private string _author;
         private string _occurredAt;
+        private SymptomTemplate _selectedTemplate;
         private string _symptom;
         private string _reproSteps;
         private string _actionsTaken;
@@ -34,13 +37,25 @@ namespace IssueReporterCD.ViewModels
         private string _statusMessage;
         private string _outputPath;
 
-        public MainViewModel(ReportSession session, IEnumerable<ICollector> collectors, AppSettings settings, UserPrefs prefs)
+        public MainViewModel(
+            ReportSession session,
+            ReporterSettings settings,
+            Func<ReporterSettings, IList<ICollector>> createCollectors,
+            IReadOnlyList<SymptomTemplate> templates,
+            IDialogService dialogs,
+            UserPrefs prefs)
         {
             _session = session;
             _settings = settings;
+            _createCollectors = createCollectors;
+            _dialogs = dialogs;
             _prefs = prefs;
 
-            Items = new ObservableCollection<CollectionItemViewModel>(collectors.Select(c => new CollectionItemViewModel(c)));
+            Items = new ObservableCollection<CollectionItemViewModel>();
+            ResetItems();
+
+            Templates = templates;
+            _selectedTemplate = templates.FirstOrDefault();
 
             _equipmentId = string.IsNullOrWhiteSpace(prefs.EquipmentId) ? Environment.MachineName : prefs.EquipmentId;
             _site = prefs.Site;
@@ -48,13 +63,18 @@ namespace IssueReporterCD.ViewModels
             _occurredAt = session.StartedAt.ToString("yyyy-MM-dd HH:mm");
 
             GenerateCommand = new AsyncRelayCommand(GenerateAsync);
+            OpenSettingsCommand = new RelayCommand(OpenSettings);
             OpenOutputFolderCommand = new RelayCommand(OpenOutputFolder, HasOutput);
             CopyOutputPathCommand = new RelayCommand(CopyOutputPath, HasOutput);
         }
 
         public ObservableCollection<CollectionItemViewModel> Items { get; }
 
+        public IReadOnlyList<SymptomTemplate> Templates { get; }
+
         public ICommand GenerateCommand { get; }
+
+        public ICommand OpenSettingsCommand { get; }
 
         public ICommand OpenOutputFolderCommand { get; }
 
@@ -82,6 +102,30 @@ namespace IssueReporterCD.ViewModels
         {
             get { return _occurredAt; }
             set { if (SetProperty(ref _occurredAt, value)) RevalidateIfShown(); }
+        }
+
+        /// <summary>
+        /// Selecting a template fills the symptom box with its prompts. Text the engineer already
+        /// typed is only replaced after confirmation; the symptom type changes either way.
+        /// </summary>
+        public SymptomTemplate SelectedTemplate
+        {
+            get { return _selectedTemplate; }
+            set
+            {
+                SymptomTemplate previous = _selectedTemplate;
+                if (value == null || !SetProperty(ref _selectedTemplate, value))
+                {
+                    return;
+                }
+
+                bool untouched = string.IsNullOrWhiteSpace(Symptom)
+                    || (previous != null && Symptom.Trim() == previous.Body.Trim());
+                if (untouched || _dialogs.Confirm("작성한 증상 내용을 '" + value.Name + "' 템플릿으로 바꿀까요?"))
+                {
+                    Symptom = value.Body;
+                }
+            }
         }
 
         public string Symptom
@@ -155,10 +199,42 @@ namespace IssueReporterCD.ViewModels
             }
         }
 
+        private void ApplySettings(ReporterSettings settings)
+        {
+            _settings = settings;
+            Task previous = _collectionTask ?? Task.FromResult(0);
+            _collectionTask = RecollectAfterAsync(previous);
+        }
+
+        private async Task RecollectAfterAsync(Task previous)
+        {
+            try
+            {
+                await previous;
+            }
+            catch (Exception)
+            {
+                // Per-item failures are already shown; start over with the new settings.
+            }
+
+            ResetItems();
+            await RunCollectorsAsync();
+            StatusMessage = "변경된 설정으로 데이터를 다시 수집했습니다.";
+        }
+
+        private void ResetItems()
+        {
+            Items.Clear();
+            foreach (ICollector collector in _createCollectors(_settings))
+            {
+                Items.Add(new CollectionItemViewModel(collector));
+            }
+        }
+
         private async Task RunCollectorsAsync()
         {
             IsCollecting = true;
-            foreach (var item in Items)
+            foreach (var item in Items.ToList())
             {
                 item.Status = CollectionStatus.Running;
                 item.Detail = "수집 중";
@@ -196,9 +272,32 @@ namespace IssueReporterCD.ViewModels
                     await _collectionTask;
                 }
 
-                StatusMessage = "압축 파일을 만드는 중...";
-                IssueReport report = BuildReport();
-                string outputDir = _settings.OutputDir;
+                StatusMessage = "로그 시각을 확인하는 중...";
+                string logDir = _settings.LogDir.Value;
+                int warningHours = _settings.LogGapWarningHours;
+                LogFreshnessResult logCheck = await Task.Run(() => LogFreshness.Check(logDir, warningHours, DateTime.Now));
+
+                bool acknowledged = false;
+                if (logCheck.IsSuspicious)
+                {
+                    LogGapChoice choice = _dialogs.AskLogGap(logCheck.Message);
+                    if (choice == LogGapChoice.OpenSettings)
+                    {
+                        StatusMessage = "설정을 확인한 뒤 리포트 생성을 다시 누르세요.";
+                        OpenSettings();
+                        return;
+                    }
+                    if (choice == LogGapChoice.Cancel)
+                    {
+                        StatusMessage = "리포트 생성을 취소했습니다.";
+                        return;
+                    }
+                    acknowledged = true;
+                }
+
+                StatusMessage = "압축 파일을 만드는 중... (최고 압축률이라 시간이 걸릴 수 있습니다)";
+                IssueReport report = BuildReport(logCheck.NewestWriteTime, acknowledged);
+                string outputDir = _settings.OutputDir.Value;
                 OutputPath = await Task.Run(() => ReportPackager.Package(_session, report, outputDir));
                 _session.HasReport = true;
                 StatusMessage = "리포트를 만들었습니다. 아래 파일을 한국 담당자에게 보내주세요.";
@@ -210,19 +309,23 @@ namespace IssueReporterCD.ViewModels
             }
         }
 
-        private IssueReport BuildReport()
+        private IssueReport BuildReport(DateTime? newestLogTime, bool logGapAcknowledged)
         {
             return new IssueReport
             {
                 CreatedAt = DateTime.Now,
+                ReporterVersion = typeof(MainViewModel).Assembly.GetName().Version.ToString(),
                 EquipmentId = EquipmentId.Trim(),
                 Site = Site.Trim(),
                 Author = Author.Trim(),
                 OccurredAt = OccurredAt.Trim(),
                 Severity = _severity,
+                SymptomType = SelectedTemplate != null ? SelectedTemplate.Name : SymptomTemplate.FreeFormName,
                 Symptom = Symptom,
                 ReproSteps = ReproSteps,
                 ActionsTaken = ActionsTaken,
+                NewestLogTime = newestLogTime,
+                LogGapWarningAcknowledged = logGapAcknowledged,
                 Collections = Items.Select(i => new CollectionSummary(i.Name, i.Status, i.Detail)).ToList(),
             };
         }
@@ -260,6 +363,16 @@ namespace IssueReporterCD.ViewModels
             OnPropertyChanged(nameof(IsSeverityHigh));
             OnPropertyChanged(nameof(IsSeverityMedium));
             OnPropertyChanged(nameof(IsSeverityLow));
+        }
+
+        private void OpenSettings()
+        {
+            ReporterSettings updated = _dialogs.ShowSettings(_settings);
+            if (updated != null)
+            {
+                StatusMessage = "변경된 설정으로 데이터를 다시 수집하는 중...";
+                ApplySettings(updated);
+            }
         }
 
         private void SavePrefs()

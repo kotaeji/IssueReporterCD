@@ -19,6 +19,14 @@
 
         <!-- Header -->
         <Border Grid.Row="0" Background="{StaticResource Brush.Primary}" Padding="20,12">
+            <DockPanel>
+                <Button DockPanel.Dock="Right" Command="{Binding OpenSettingsCommand}" ToolTip="수집 경로와 저장 위치 설정"
+                        Style="{StaticResource HeaderButton}" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="&#xE713;" FontFamily="Segoe MDL2 Assets" VerticalAlignment="Center" Margin="0,0,6,0" />
+                        <TextBlock Text="설정" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="&#xEBE8;" FontFamily="Segoe MDL2 Assets" FontSize="20"
                            Foreground="{StaticResource Brush.OnPrimary}" VerticalAlignment="Center" Margin="0,0,12,0" />
@@ -29,6 +37,7 @@
                                FontSize="12" Foreground="{StaticResource Brush.OnPrimarySecondary}" />
                 </StackPanel>
             </StackPanel>
+            </DockPanel>
         </Border>
 
         <!-- Basic info -->
@@ -85,7 +94,17 @@
                         <TextBox Text="{Binding OccurredAt, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left" />
                     </StackPanel>
 
-                    <TextBlock Grid.Row="2" Style="{StaticResource FieldLabel}"><Run Text="증상 (알람 코드, 화면 메시지 등)" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                    <Grid Grid.Row="2" Margin="0,0,0,6">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom"><Run Text="증상" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                        <TextBlock Grid.Column="1" Text="증상 유형" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                        <ComboBox Grid.Column="2" Width="200" ItemsSource="{Binding Templates}"
+                                  SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" />
+                    </Grid>
                     <TextBox Grid.Row="3" Style="{StaticResource MultiLineTextBox}" MinHeight="60"
                              Text="{Binding Symptom, UpdateSourceTrigger=PropertyChanged}" />
 

@@ -10,7 +10,7 @@ namespace IssueReporterCD.Reporting
         public const string DescriptionFileName = "issue_report.txt";
 
         /// <summary>
-        /// Writes the issue description into the session folder and zips the whole folder.
+        /// Writes issue_report.txt and report.json into the session folder and zips the whole folder.
         /// </summary>
         /// <returns>Full path of the created zip, named yyyyMMdd_HHmmss_{EquipmentId}.zip.</returns>
         public static string Package(ReportSession session, IssueReport report, string outputDir)
@@ -19,6 +19,7 @@ namespace IssueReporterCD.Reporting
                 Path.Combine(session.WorkDir, DescriptionFileName),
                 FormatDescription(report),
                 new UTF8Encoding(true));
+            ReportManifest.From(report).WriteTo(Path.Combine(session.WorkDir, ReportManifest.FileName));
 
             Directory.CreateDirectory(outputDir);
             string baseName = report.CreatedAt.ToString("yyyyMMdd_HHmmss") + "_" + SanitizeFileName(report.EquipmentId);
@@ -28,6 +29,7 @@ namespace IssueReporterCD.Reporting
                 zipPath = Path.Combine(outputDir, baseName + "_" + i + ".zip");
             }
 
+            // Optimal is the strongest level the built-in .zip (Deflate) supports on .NET Framework.
             ZipFile.CreateFromDirectory(session.WorkDir, zipPath, CompressionLevel.Optimal, false);
             return zipPath;
         }
@@ -42,6 +44,8 @@ namespace IssueReporterCD.Reporting
             sb.AppendLine("작성자 (Author)      : " + report.Author);
             sb.AppendLine("발생 시각 (Occurred) : " + report.OccurredAt);
             sb.AppendLine("긴급도 (Severity)    : " + FormatSeverity(report.Severity));
+            sb.AppendLine("증상 유형 (Type)     : " + report.SymptomType);
+            sb.AppendLine("최근 로그 (Last log) : " + FormatLogCheck(report));
             sb.AppendLine();
             AppendSection(sb, "증상 (Symptom)", report.Symptom);
             AppendSection(sb, "재현 절차 (Repro steps)", report.ReproSteps);
@@ -53,6 +57,14 @@ namespace IssueReporterCD.Reporting
                 sb.AppendLine(string.Format("- {0}: {1} ({2})", item.Name, item.Status, item.Detail));
             }
             return sb.ToString();
+        }
+
+        private static string FormatLogCheck(IssueReport report)
+        {
+            string text = report.NewestLogTime.HasValue
+                ? report.NewestLogTime.Value.ToString("yyyy-MM-dd HH:mm:ss")
+                : "(찾지 못함)";
+            return report.LogGapWarningAcknowledged ? text + " ※ 시간 차이 경고 확인 후 진행" : text;
         }
 
         private static void AppendSection(StringBuilder sb, string title, string body)

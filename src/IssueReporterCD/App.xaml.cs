@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows;
 using System.Windows.Threading;
@@ -7,9 +6,14 @@ using IssueReporterCD.Collectors;
 using IssueReporterCD.Reporting;
 using IssueReporterCD.Settings;
 using IssueReporterCD.ViewModels;
+using IssueReporterCD.Views;
 
 namespace IssueReporterCD
 {
+    /// <summary>
+    /// Runs as its own process, independent of Aurora, so it keeps working when Aurora has crashed or hung.
+    /// It only reads Aurora's files; nothing here loads Aurora code or talks to the Aurora process.
+    /// </summary>
     public partial class App : Application
     {
         private ReportSession _session;
@@ -32,16 +36,17 @@ namespace IssueReporterCD
                 screenshotError = ex.Message;
             }
 
-            var settings = AppSettings.Load();
-            var collectors = new List<ICollector>
-            {
-                new ScreenshotCollector(_session.ScreenshotDir, screenshotError),
-                new SystemInfoCollector(),
-                new DirectoryCollector("Aurora 로그", settings.AuroraLogDir, "aurora_logs", settings.LogMaxAgeDays),
-                new DirectoryCollector("Aurora 설정", settings.AuroraConfigDir, "aurora_config", 0),
-            };
+            var settingsService = new SettingsService();
+            string templateDir = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SymptomTemplates");
 
-            var viewModel = new MainViewModel(_session, collectors, settings, UserPrefs.Load());
+            var viewModel = new MainViewModel(
+                _session,
+                settingsService.Load(),
+                s => CollectorFactory.Create(s, _session.ScreenshotDir, screenshotError),
+                SymptomTemplate.LoadAll(templateDir),
+                new DialogService(settingsService),
+                UserPrefs.Load());
+
             var window = new MainWindow { DataContext = viewModel };
             MainWindow = window;
             window.Show();

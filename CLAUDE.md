@@ -14,8 +14,10 @@ Aurora 장비 PC에서 이슈 설명과 장비 데이터를 zip으로 묶어 주
 
 - `Themes/` — `Colors.xaml`(네이비 코퍼레이트 테마 브러시), `Controls.xaml`(컨트롤 스타일). 색은 항상 `Brush.*` 리소스를 쓴다.
 - `Collectors/` — `ICollector` 구현. 새 수집 항목은 여기에 추가하고 `App.OnStartup`에 등록한다.
-- `Reporting/` — 세션 임시 폴더, 리포트 텍스트, zip 생성.
-- `Settings/` — `App.config`의 appSettings(`AppSettings`), 사용자 입력 기억(`UserPrefs`).
+- `Reporting/` — 세션 임시 폴더, 리포트 텍스트, `report.json`(향후 분석 서비스용. 필드 이름을 바꾸거나 지우면 `SchemaVersion`을 올린다), zip 생성.
+- `Settings/` — 경로와 옵션 결정(`SettingsService`: 사용자 지정 > Aurora 제공 파일 > App.config), 사용자 입력 기억(`UserPrefs`). Aurora 연동 규격은 `docs/aurora-integration.md`.
+- `SymptomTemplates/` — 증상 템플릿 텍스트(exe 옆으로 복사됨).
+- `Views/` — 설정 창, 로그 시각 경고 창, `DialogService`(`IDialogService` 구현).
 - `Assets/app.ico` — 앱 아이콘. 직접 수정하지 말고 `assets/app-icon.svg`(디자인 원본)와 `tools/make_icon.py`를 함께 고친 뒤 스크립트로 다시 만든다.
 - `ViewModels/`, `Infrastructure/` — 외부 라이브러리 없는 간단한 MVVM.
 

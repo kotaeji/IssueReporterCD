@@ -1,6 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
-using System.Text;
+using IssueReporterCD.Infrastructure;
 
 namespace IssueReporterCD.Settings
 {
@@ -32,34 +33,11 @@ namespace IssueReporterCD.Settings
             var prefs = new UserPrefs();
             try
             {
-                if (!File.Exists(FilePath))
-                {
-                    return prefs;
-                }
-
-                foreach (string line in File.ReadAllLines(FilePath, Encoding.UTF8))
-                {
-                    int separator = line.IndexOf('=');
-                    if (separator <= 0)
-                    {
-                        continue;
-                    }
-
-                    string key = line.Substring(0, separator);
-                    string value = line.Substring(separator + 1);
-                    switch (key)
-                    {
-                        case "EquipmentId":
-                            prefs.EquipmentId = value;
-                            break;
-                        case "Site":
-                            prefs.Site = value;
-                            break;
-                        case "Author":
-                            prefs.Author = value;
-                            break;
-                    }
-                }
+                Dictionary<string, string> values = KeyValueFile.Read(FilePath);
+                string value;
+                if (values.TryGetValue("EquipmentId", out value)) prefs.EquipmentId = value;
+                if (values.TryGetValue("Site", out value)) prefs.Site = value;
+                if (values.TryGetValue("Author", out value)) prefs.Author = value;
             }
             catch (Exception)
             {
@@ -72,13 +50,12 @@ namespace IssueReporterCD.Settings
         {
             try
             {
-                Directory.CreateDirectory(Path.GetDirectoryName(FilePath));
-                File.WriteAllLines(FilePath, new[]
+                KeyValueFile.Write(FilePath, new Dictionary<string, string>
                 {
-                    "EquipmentId=" + EquipmentId,
-                    "Site=" + Site,
-                    "Author=" + Author,
-                }, Encoding.UTF8);
+                    { "EquipmentId", EquipmentId },
+                    { "Site", Site },
+                    { "Author", Author },
+                });
             }
             catch (Exception)
             {

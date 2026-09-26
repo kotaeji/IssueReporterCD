@@ -34,6 +34,8 @@ namespace IssueReporterCD.Reporting
     {
         public DateTime CreatedAt { get; set; }
 
+        public string ReporterVersion { get; set; }
+
         public string EquipmentId { get; set; }
 
         public string Site { get; set; }
@@ -44,11 +46,18 @@ namespace IssueReporterCD.Reporting
 
         public Severity Severity { get; set; }
 
+        public string SymptomType { get; set; }
+
         public string Symptom { get; set; }
 
         public string ReproSteps { get; set; }
 
         public string ActionsTaken { get; set; }
+
+        public DateTime? NewestLogTime { get; set; }
+
+        /// <summary>True when the engineer was warned about the log time gap and chose to continue.</summary>
+        public bool LogGapWarningAcknowledged { get; set; }
 
         public IList<CollectionSummary> Collections { get; set; }
     }

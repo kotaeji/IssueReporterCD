@@ -1,0 +1,4 @@
+﻿대상 장치/호스트: 
+통신 방식: (예: TCP/IP, Serial, EtherCAT, SECS/GEM)
+오류 메시지: 
+케이블·연결 상태 확인 결과: 

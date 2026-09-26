@@ -9,7 +9,7 @@
     <AssemblyName>IssueReporterCD</AssemblyName>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <Prefer32Bit>false</Prefer32Bit>
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <Product>Aurora Issue Reporter</Product>
     <ApplicationIcon>Assets\app.ico</ApplicationIcon>
   </PropertyGroup>
@@ -24,11 +24,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Symptom templates stay editable text files next to the exe. -->
+    <None Update="SymptomTemplates\*.txt" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.IO.Compression" />
     <Reference Include="System.IO.Compression.FileSystem" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
   </ItemGroup>
 

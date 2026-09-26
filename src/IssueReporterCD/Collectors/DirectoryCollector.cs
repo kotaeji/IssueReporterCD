@@ -34,13 +34,20 @@ namespace IssueReporterCD.Collectors
 
         private CollectorResult Collect(string workDir, CancellationToken cancellationToken)
         {
+            string destRoot = Path.Combine(workDir, _destName);
+
+            // Collection is re-run when paths change in settings; drop files from the previous path.
+            if (Directory.Exists(destRoot))
+            {
+                Directory.Delete(destRoot, true);
+            }
+
             if (string.IsNullOrWhiteSpace(_sourceDir) || !Directory.Exists(_sourceDir))
             {
                 return CollectorResult.Warning("경로 없음: " + _sourceDir);
             }
 
             string sourceRoot = Path.GetFullPath(_sourceDir).TrimEnd('\\', '/');
-            string destRoot = Path.Combine(workDir, _destName);
             DateTime? cutoff = _maxAgeDays > 0 ? DateTime.Now.AddDays(-_maxAgeDays) : (DateTime?)null;
 
             int copied = 0;
