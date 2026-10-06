@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IssueReporterCD", "src\IssueReporterCD\IssueReporterCD.csproj", "{505AFCB5-F5E2-4DF4-ACD8-2B2820040442}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ScreenTour", "tools\ScreenTour\ScreenTour.csproj", "{B406D02D-AE34-4045-8B8D-48213122A1A1}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,6 +17,10 @@ Global
 		{505AFCB5-F5E2-4DF4-ACD8-2B2820040442}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{505AFCB5-F5E2-4DF4-ACD8-2B2820040442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{505AFCB5-F5E2-4DF4-ACD8-2B2820040442}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B406D02D-AE34-4045-8B8D-48213122A1A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B406D02D-AE34-4045-8B8D-48213122A1A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B406D02D-AE34-4045-8B8D-48213122A1A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B406D02D-AE34-4045-8B8D-48213122A1A1}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

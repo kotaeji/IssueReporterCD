@@ -9,6 +9,7 @@ Aurora 장비 PC에서 이슈 설명과 장비 데이터를 zip으로 묶어 주
 - 변경 후 Mac에서 컴파일 검사를 한다(XAML 포함):
   `dotnet build src/IssueReporterCD/IssueReporterCD.csproj -p:EnableWindowsTargeting=true -v:minimal`
 - 실제 Windows 빌드는 GitHub Actions(`.github/workflows/build.yml`)에서 확인한다.
+- 화면은 `tools/ScreenTour`가 CI(Windows)에서 모든 창과 드롭다운을 PNG로 렌더링해 `ui-screenshots` 브랜치에 올린다. UI를 바꾸면 push 후 `git fetch origin ui-screenshots`로 받아 직접 확인한다. 새 창이나 드롭다운을 추가하면 ScreenTour에도 추가한다.
 
 ## 구조 (src/IssueReporterCD)
 

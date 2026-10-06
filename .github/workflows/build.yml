@@ -22,3 +22,41 @@ jobs:
         with:
           name: IssueReporterCD-${{ github.sha }}
           path: src/IssueReporterCD/bin/Release/net481/
+
+  # Renders every screen to PNG so UI changes can be reviewed without a Windows PC.
+  # Results are force-pushed to the ui-screenshots branch (latest main only).
+  screenshots:
+    runs-on: windows-latest
+    if: github.event_name != 'pull_request'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Build screen tour
+        run: msbuild tools/ScreenTour/ScreenTour.csproj /restore /p:Configuration=Release /v:minimal
+
+      - name: Capture screens
+        timeout-minutes: 5
+        run: tools/ScreenTour/bin/Release/net481/ScreenTour.exe "${{ github.workspace }}\ui-screenshots"
+
+      - name: Upload screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ui-screenshots-${{ github.sha }}
+          path: ui-screenshots/
+
+      - name: Publish to ui-screenshots branch
+        if: github.ref == 'refs/heads/main'
+        shell: bash
+        run: |
+          cd ui-screenshots
+          git init -q -b ui-screenshots
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "UI screenshots for ${GITHUB_SHA::7}"
+          git push -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" ui-screenshots
