@@ -52,6 +52,9 @@ namespace IssueReporterCD.Settings
         public string UserSettingsFile { get; set; }
 
         public string AuroraDiscoveryFile { get; set; }
+
+        /// <summary>Environment fingerprint file written by Aurora / Boot Loader (docs/aurora-integration.md).</summary>
+        public string AuroraEnvironmentFile { get; set; }
     }
 
     /// <summary>

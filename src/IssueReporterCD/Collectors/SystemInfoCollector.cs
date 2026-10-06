@@ -81,7 +81,7 @@ namespace IssueReporterCD.Collectors
             return sb.ToString();
         }
 
-        private static string GetOsDescription()
+        internal static string GetOsDescription()
         {
             try
             {

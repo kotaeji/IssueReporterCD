@@ -55,6 +55,7 @@ namespace IssueReporterCD.Settings
                 LogGapWarningHours = ResolveInt(LogGapWarningHoursKey, user, 24),
                 UserSettingsFile = _userFile,
                 AuroraDiscoveryFile = _discoveryFile,
+                AuroraEnvironmentFile = ResolveEnvironmentFile(aurora),
             };
         }
 
@@ -105,6 +106,16 @@ namespace IssueReporterCD.Settings
             }
 
             return WithUserOverride(key, user, autoValue, autoSource);
+        }
+
+        private string ResolveEnvironmentFile(Dictionary<string, string> aurora)
+        {
+            string fromAurora;
+            if (aurora.TryGetValue("EnvironmentFile", out fromAurora) && !string.IsNullOrWhiteSpace(fromAurora))
+            {
+                return Expand(fromAurora);
+            }
+            return Expand(_defaults["AuroraEnvironmentFile"]);
         }
 
         private PathSetting ResolveOutputDir(Dictionary<string, string> user)

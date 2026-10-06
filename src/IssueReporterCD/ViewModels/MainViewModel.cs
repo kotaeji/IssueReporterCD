@@ -26,7 +26,15 @@ namespace IssueReporterCD.ViewModels
         private string _equipmentId;
         private string _site;
         private string _author;
+        private string _line;
+        private string _title;
         private string _occurredAt;
+        private Frequency _frequency;
+        private Reproducible _reproducible;
+        private OperatingMode _operatingMode;
+        private LifecyclePhase _lifecyclePhase;
+        private string _alarmCodes;
+        private string _expected;
         private SymptomTemplate _selectedTemplate;
         private string _symptom;
         private string _reproSteps;
@@ -60,6 +68,7 @@ namespace IssueReporterCD.ViewModels
             _equipmentId = string.IsNullOrWhiteSpace(prefs.EquipmentId) ? Environment.MachineName : prefs.EquipmentId;
             _site = prefs.Site;
             _author = prefs.Author;
+            _line = prefs.Line;
             _occurredAt = session.StartedAt.ToString("yyyy-MM-dd HH:mm");
 
             GenerateCommand = new AsyncRelayCommand(GenerateAsync);
@@ -71,6 +80,26 @@ namespace IssueReporterCD.ViewModels
         public ObservableCollection<CollectionItemViewModel> Items { get; }
 
         public IReadOnlyList<SymptomTemplate> Templates { get; }
+
+        public IReadOnlyList<Choice<Frequency>> Frequencies
+        {
+            get { return Choices.Frequencies; }
+        }
+
+        public IReadOnlyList<Choice<Reproducible>> Reproducibility
+        {
+            get { return Choices.Reproducibility; }
+        }
+
+        public IReadOnlyList<Choice<OperatingMode>> OperatingModes
+        {
+            get { return Choices.OperatingModes; }
+        }
+
+        public IReadOnlyList<Choice<LifecyclePhase>> LifecyclePhases
+        {
+            get { return Choices.LifecyclePhases; }
+        }
 
         public ICommand GenerateCommand { get; }
 
@@ -96,6 +125,55 @@ namespace IssueReporterCD.ViewModels
         {
             get { return _author; }
             set { if (SetProperty(ref _author, value)) RevalidateIfShown(); }
+        }
+
+        public string Line
+        {
+            get { return _line; }
+            set { SetProperty(ref _line, value); }
+        }
+
+        public string Title
+        {
+            get { return _title; }
+            set { if (SetProperty(ref _title, value)) RevalidateIfShown(); }
+        }
+
+        public Frequency Frequency
+        {
+            get { return _frequency; }
+            set { SetProperty(ref _frequency, value); }
+        }
+
+        public Reproducible Reproducible
+        {
+            get { return _reproducible; }
+            set { SetProperty(ref _reproducible, value); }
+        }
+
+        public OperatingMode OperatingMode
+        {
+            get { return _operatingMode; }
+            set { SetProperty(ref _operatingMode, value); }
+        }
+
+        public LifecyclePhase LifecyclePhase
+        {
+            get { return _lifecyclePhase; }
+            set { SetProperty(ref _lifecyclePhase, value); }
+        }
+
+        /// <summary>Comma, space or newline separated; stored as a list in report.json.</summary>
+        public string AlarmCodes
+        {
+            get { return _alarmCodes; }
+            set { SetProperty(ref _alarmCodes, value); }
+        }
+
+        public string Expected
+        {
+            get { return _expected; }
+            set { if (SetProperty(ref _expected, value)) RevalidateIfShown(); }
         }
 
         public string OccurredAt
@@ -137,7 +215,7 @@ namespace IssueReporterCD.ViewModels
         public string ReproSteps
         {
             get { return _reproSteps; }
-            set { SetProperty(ref _reproSteps, value); }
+            set { if (SetProperty(ref _reproSteps, value)) RevalidateIfShown(); }
         }
 
         public string ActionsTaken
@@ -313,17 +391,27 @@ namespace IssueReporterCD.ViewModels
         {
             return new IssueReport
             {
+                IssueId = Guid.NewGuid().ToString(),
                 CreatedAt = DateTime.Now,
                 ReporterVersion = typeof(MainViewModel).Assembly.GetName().Version.ToString(),
+                Author = Author.Trim(),
                 EquipmentId = EquipmentId.Trim(),
                 Site = Site.Trim(),
-                Author = Author.Trim(),
+                Line = Line == null ? null : Line.Trim(),
+                Environment = Items.Select(i => i.Collector).OfType<EnvironmentCollector>().Select(c => c.Result).FirstOrDefault(),
+                Title = Title.Trim(),
+                SymptomType = SelectedTemplate != null ? SelectedTemplate.Name : SymptomTemplate.FreeFormName,
+                Expected = Expected,
+                Actual = Symptom,
+                ReproSteps = ReproSteps,
+                Frequency = Frequency,
+                Reproducible = Reproducible,
                 OccurredAt = OccurredAt.Trim(),
                 Severity = _severity,
-                SymptomType = SelectedTemplate != null ? SelectedTemplate.Name : SymptomTemplate.FreeFormName,
-                Symptom = Symptom,
-                ReproSteps = ReproSteps,
                 ActionsTaken = ActionsTaken,
+                OperatingMode = OperatingMode,
+                LifecyclePhase = LifecyclePhase,
+                AlarmCodes = ParseAlarmCodes(AlarmCodes),
                 NewestLogTime = newestLogTime,
                 LogGapWarningAcknowledged = logGapAcknowledged,
                 Collections = Items.Select(i => new CollectionSummary(i.Name, i.Status, i.Detail)).ToList(),
@@ -336,9 +424,24 @@ namespace IssueReporterCD.ViewModels
             if (string.IsNullOrWhiteSpace(EquipmentId)) missing.Add("장비 ID");
             if (string.IsNullOrWhiteSpace(Site)) missing.Add("사이트");
             if (string.IsNullOrWhiteSpace(Author)) missing.Add("작성자");
+            if (string.IsNullOrWhiteSpace(Title)) missing.Add("제목");
             if (string.IsNullOrWhiteSpace(OccurredAt)) missing.Add("발생 시각");
-            if (string.IsNullOrWhiteSpace(Symptom)) missing.Add("증상");
+            if (string.IsNullOrWhiteSpace(Symptom)) missing.Add("실제 동작");
+            if (string.IsNullOrWhiteSpace(Expected)) missing.Add("기대 동작");
+            if (string.IsNullOrWhiteSpace(ReproSteps)) missing.Add("재현 절차");
             return missing;
+        }
+
+        public static List<string> ParseAlarmCodes(string text)
+        {
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return new List<string>();
+            }
+            return text.Split(new[] { ',', ';', ' ', '\t', '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(code => code.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
 
         private void RevalidateIfShown()
@@ -380,6 +483,7 @@ namespace IssueReporterCD.ViewModels
             _prefs.EquipmentId = EquipmentId.Trim();
             _prefs.Site = Site.Trim();
             _prefs.Author = Author.Trim();
+            _prefs.Line = Line == null ? null : Line.Trim();
             _prefs.Save();
         }
 

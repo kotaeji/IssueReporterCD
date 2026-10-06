@@ -28,6 +28,8 @@ namespace IssueReporterCD.Settings
 
         public string Author { get; set; }
 
+        public string Line { get; set; }
+
         public static UserPrefs Load()
         {
             var prefs = new UserPrefs();
@@ -38,6 +40,7 @@ namespace IssueReporterCD.Settings
                 if (values.TryGetValue("EquipmentId", out value)) prefs.EquipmentId = value;
                 if (values.TryGetValue("Site", out value)) prefs.Site = value;
                 if (values.TryGetValue("Author", out value)) prefs.Author = value;
+                if (values.TryGetValue("Line", out value)) prefs.Line = value;
             }
             catch (Exception)
             {
@@ -55,6 +58,7 @@ namespace IssueReporterCD.Settings
                     { "EquipmentId", EquipmentId },
                     { "Site", Site },
                     { "Author", Author },
+                    { "Line", Line },
                 });
             }
             catch (Exception)

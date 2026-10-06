@@ -13,8 +13,8 @@ Aurora 장비 PC에서 이슈 설명과 장비 데이터를 zip으로 묶어 주
 ## 구조 (src/IssueReporterCD)
 
 - `Themes/` — `Colors.xaml`(네이비 코퍼레이트 테마 브러시), `Controls.xaml`(컨트롤 스타일). 색은 항상 `Brush.*` 리소스를 쓴다.
-- `Collectors/` — `ICollector` 구현. 새 수집 항목은 여기에 추가하고 `App.OnStartup`에 등록한다.
-- `Reporting/` — 세션 임시 폴더, 리포트 텍스트, `report.json`(향후 분석 서비스용. 필드 이름을 바꾸거나 지우면 `SchemaVersion`을 올린다), zip 생성.
+- `Collectors/` — `ICollector` 구현. 새 수집 항목은 여기에 추가하고 `CollectorFactory`에 등록한다. `EnvironmentCollector`가 스키마의 환경 지문 층을 만든다.
+- `Reporting/` — 세션 임시 폴더, 리포트 텍스트, `report.json`, zip 생성. `report.json` 필드는 `docs/issue-schema.md`(필드 카탈로그)와 항상 함께 고친다. 필드 이름을 바꾸거나 지우면 `ReportManifest.CurrentSchemaVersion`을 올리고 카탈로그의 버전 기록에 남긴다.
 - `Settings/` — 경로와 옵션 결정(`SettingsService`: 사용자 지정 > Aurora 제공 파일 > App.config), 사용자 입력 기억(`UserPrefs`). Aurora 연동 규격은 `docs/aurora-integration.md`.
 - `SymptomTemplates/` — 증상 템플릿 텍스트(exe 옆으로 복사됨).
 - `Views/` — 설정 창, 로그 시각 경고 창, `DialogService`(`IDialogService` 구현).

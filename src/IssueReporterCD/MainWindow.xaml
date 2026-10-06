@@ -3,7 +3,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Aurora Issue Reporter"
         Icon="Assets/app.ico"
-        Width="980" Height="700" MinWidth="820" MinHeight="620"
+        Width="1060" Height="840" MinWidth="900" MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Background="{StaticResource Brush.Background}"
         FontFamily="Segoe UI" FontSize="13"
@@ -48,6 +48,8 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="16" />
                 <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="16" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
 
             <StackPanel Grid.Column="0">
@@ -59,6 +61,10 @@
                 <TextBox Text="{Binding Site, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
             <StackPanel Grid.Column="4">
+                <TextBlock Text="라인" Style="{StaticResource FieldLabel}" />
+                <TextBox Text="{Binding Line, UpdateSourceTrigger=PropertyChanged}" />
+            </StackPanel>
+            <StackPanel Grid.Column="6">
                 <TextBlock Style="{StaticResource FieldLabel}"><Run Text="작성자" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
                 <TextBox Text="{Binding Author, UpdateSourceTrigger=PropertyChanged}" />
             </StackPanel>
@@ -72,57 +78,97 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
 
-            <!-- Issue description -->
-            <Border Grid.Column="0" Style="{StaticResource Panel}">
-                <Grid>
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="2*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
+            <!-- Issue description (schema layers ③ symptom and ④ location; see docs/issue-schema.md) -->
+            <Border Grid.Column="0" Style="{StaticResource Panel}" Padding="14,14,4,14">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel Margin="0,0,10,0">
+                        <TextBlock Text="이슈 설명" Style="{StaticResource SectionTitle}" />
 
-                    <TextBlock Grid.Row="0" Text="이슈 설명" Style="{StaticResource SectionTitle}" />
+                        <TextBlock Style="{StaticResource FieldLabel}"><Run Text="제목 (한 줄 요약)" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                        <TextBox Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" />
 
-                    <StackPanel Grid.Row="1">
-                        <TextBlock Style="{StaticResource FieldLabel}"><Run Text="발생 시각" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
-                        <TextBox Text="{Binding OccurredAt, UpdateSourceTrigger=PropertyChanged}" Width="200" HorizontalAlignment="Left" />
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.3*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Style="{StaticResource FieldLabel}"><Run Text="발생 시각" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                                <TextBox Text="{Binding OccurredAt, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="빈도" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding Frequencies}" DisplayMemberPath="Label"
+                                          SelectedValuePath="Value" SelectedValue="{Binding Frequency}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="운전 모드" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding OperatingModes}" DisplayMemberPath="Label"
+                                          SelectedValuePath="Value" SelectedValue="{Binding OperatingMode}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="6">
+                                <TextBlock Text="동작 단계" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding LifecyclePhases}" DisplayMemberPath="Label"
+                                          SelectedValuePath="Value" SelectedValue="{Binding LifecyclePhase}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="2*" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="재현 여부" Style="{StaticResource FieldLabel}" />
+                                <ComboBox ItemsSource="{Binding Reproducibility}" DisplayMemberPath="Label"
+                                          SelectedValuePath="Value" SelectedValue="{Binding Reproducible}" />
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="알람 코드 (여러 개면 쉼표로 구분)" Style="{StaticResource FieldLabel}" />
+                                <TextBox Text="{Binding AlarmCodes, UpdateSourceTrigger=PropertyChanged}" />
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,6">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom"><Run Text="실제 동작 (증상)" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                            <TextBlock Grid.Column="1" Text="증상 유형" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
+                            <ComboBox Grid.Column="2" Width="200" ItemsSource="{Binding Templates}"
+                                      SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" Margin="0" />
+                        </Grid>
+                        <TextBox Style="{StaticResource MultiLineTextBox}" Height="110"
+                                 Text="{Binding Symptom, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Style="{StaticResource FieldLabel}"><Run Text="기대 동작 (원래 어떻게 되어야 하나)" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                        <TextBox Style="{StaticResource MultiLineTextBox}" Height="50"
+                                 Text="{Binding Expected, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Style="{StaticResource FieldLabel}"><Run Text="재현 절차 (재현이 안 되면 발생 직전에 하던 작업)" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
+                        <TextBox Style="{StaticResource MultiLineTextBox}" Height="66"
+                                 Text="{Binding ReproSteps, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <TextBlock Text="조치 내용" Style="{StaticResource FieldLabel}" />
+                        <TextBox Style="{StaticResource MultiLineTextBox}" Height="50"
+                                 Text="{Binding ActionsTaken, UpdateSourceTrigger=PropertyChanged}" />
+
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="긴급도" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,16,0" />
+                            <RadioButton Content="상 (라인 정지)" GroupName="Severity" IsChecked="{Binding IsSeverityHigh}" />
+                            <RadioButton Content="중" GroupName="Severity" IsChecked="{Binding IsSeverityMedium}" />
+                            <RadioButton Content="하" GroupName="Severity" IsChecked="{Binding IsSeverityLow}" />
+                        </StackPanel>
                     </StackPanel>
-
-                    <Grid Grid.Row="2" Margin="0,0,0,6">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Style="{StaticResource FieldLabel}" VerticalAlignment="Bottom"><Run Text="증상" /><Run Text=" *" Style="{StaticResource RequiredMark}" /></TextBlock>
-                        <TextBlock Grid.Column="1" Text="증상 유형" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,8,0" />
-                        <ComboBox Grid.Column="2" Width="200" ItemsSource="{Binding Templates}"
-                                  SelectedItem="{Binding SelectedTemplate}" DisplayMemberPath="Name" />
-                    </Grid>
-                    <TextBox Grid.Row="3" Style="{StaticResource MultiLineTextBox}" MinHeight="60"
-                             Text="{Binding Symptom, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock Grid.Row="4" Text="재현 절차" Style="{StaticResource FieldLabel}" />
-                    <TextBox Grid.Row="5" Style="{StaticResource MultiLineTextBox}" MinHeight="44"
-                             Text="{Binding ReproSteps, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <TextBlock Grid.Row="6" Text="조치 내용" Style="{StaticResource FieldLabel}" />
-                    <TextBox Grid.Row="7" Style="{StaticResource MultiLineTextBox}" MinHeight="44"
-                             Text="{Binding ActionsTaken, UpdateSourceTrigger=PropertyChanged}" />
-
-                    <StackPanel Grid.Row="8" Orientation="Horizontal">
-                        <TextBlock Text="긴급도" Style="{StaticResource FieldLabel}" VerticalAlignment="Center" Margin="0,0,16,0" />
-                        <RadioButton Content="상 (라인 정지)" GroupName="Severity" IsChecked="{Binding IsSeverityHigh}" />
-                        <RadioButton Content="중" GroupName="Severity" IsChecked="{Binding IsSeverityMedium}" />
-                        <RadioButton Content="하" GroupName="Severity" IsChecked="{Binding IsSeverityLow}" />
-                    </StackPanel>
-                </Grid>
+                </ScrollViewer>
             </Border>
 
             <!-- Data collection -->
@@ -135,7 +181,7 @@
                                  Foreground="{StaticResource Brush.Running}" Background="{StaticResource Brush.Track}" />
                     <TextBlock DockPanel.Dock="Bottom" TextWrapping="Wrap" FontSize="12"
                                Foreground="{StaticResource Brush.TextSecondary}"
-                               Text="프로그램을 실행하는 순간 화면과 데이터를 자동으로 수집합니다. 수집이 진행되는 동안 이슈 설명을 작성하세요." />
+                               Text="프로그램을 실행하는 순간 화면과 데이터를 자동으로 수집합니다. 버전, 설정 해시 같은 환경 정보도 자동으로 붙으니, 수집이 진행되는 동안 이슈 설명만 작성하세요." />
                     <ItemsControl ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>

@@ -11,6 +11,7 @@ namespace IssueReporterCD.Collectors
             {
                 new ScreenshotCollector(screenshotDir, screenshotError),
                 new SystemInfoCollector(),
+                new EnvironmentCollector(settings.AuroraEnvironmentFile, settings.ConfigDir.Value),
                 new DirectoryCollector("Aurora 로그", settings.LogDir.Value, "aurora_logs", settings.LogMaxAgeDays),
                 new DirectoryCollector("Aurora sys-error", settings.SysErrorDir.Value, "aurora_syserror", settings.LogMaxAgeDays),
                 new DirectoryCollector("Aurora 설정", settings.ConfigDir.Value, "aurora_config", 0),
