@@ -57,6 +57,9 @@ namespace ScreenTour
 
         private static void Run()
         {
+            // Without Application.Run there is no UI SynchronizationContext, so awaits in the view model
+            // would resume on the thread pool and command states would never refresh.
+            System.Threading.SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             var app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             app.InitializeComponent();
 
