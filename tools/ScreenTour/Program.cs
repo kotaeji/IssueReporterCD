@@ -47,6 +47,9 @@ namespace ScreenTour
             catch (Exception ex)
             {
                 Console.Error.WriteLine(ex);
+                File.WriteAllText(Path.Combine(_outDir, "error.txt"), ex.ToString(), new UTF8Encoding(false));
+                // GitHub Actions annotation: readable on the run page without downloading logs.
+                Console.WriteLine("::error title=ScreenTour failed::" + ex.ToString().Replace("%", "%25").Replace("\r", "").Replace("\n", "%0A"));
                 WriteIndex();
                 return 1;
             }

@@ -50,7 +50,7 @@ jobs:
           path: ui-screenshots/
 
       - name: Publish to ui-screenshots branch
-        if: github.ref == 'refs/heads/main'
+        if: always() && github.ref == 'refs/heads/main'
         shell: bash
         run: |
           cd ui-screenshots
