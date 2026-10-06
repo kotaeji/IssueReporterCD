@@ -57,8 +57,6 @@ namespace ScreenTour
 
         private static void Run()
         {
-            // Resolve "/Assets/..." pack URIs against IssueReporterCD, not this exe.
-            Application.ResourceAssembly = typeof(App).Assembly;
             var app = new App { ShutdownMode = ShutdownMode.OnExplicitShutdown };
             app.InitializeComponent();
 
